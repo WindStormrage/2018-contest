@@ -7,6 +7,7 @@
     left: calc(50% - 200px);
     max-width: 400px;
     overflow: hidden;
+    font-size: 87.5%;
 }
 @media screen and (max-width: 400px) {
     #game{
@@ -18,7 +19,7 @@
     display: block;
     margin-top: 100%;
 }
-.content{
+#content{
     height: 100%;
     width: 100%;
     position: absolute;
@@ -35,8 +36,20 @@
     flex-direction: row;
 }
 .td{
-    flex:1;
+    flex:1 1 1;
+    width: 100%;
     background-color: #CFBFAF;
     margin: 5px;
     border-radius: 5px;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+}
+.td span{
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
 }
