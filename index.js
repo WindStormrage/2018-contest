@@ -13,13 +13,11 @@ var type = [
     {content: 2048, color: '#F6C600'}
 ];
 
-var map = [
-    [2,0,2,0],
-    [4,2,0,2],
-    [4,4,0,2],
-    [0,0,4,0]
-];
+var map;
+//用来判断是否在本次已经叠加过了
 var add;
+
+var count;
 
 var content = document.getElementById("content");
 
@@ -64,12 +62,16 @@ function show () {
         html += `</div>`;
     }
     content.innerHTML = html;
+    //展示分数
+    document.getElementById("count").innerHTML = `总分：${count}`;
 }
 
 //点击触发
 document.onkeydown = function (e) {
     //重置add数组
     reAdd()
+    //确认这次按键是否动了数组
+    let domove = 0;
     //如果按了左键
     if(e.keyCode === 37){
         for(let i=0; i<map.length; i++){
@@ -86,12 +88,19 @@ document.onkeydown = function (e) {
                                 map[i][j] = 0;
                                 //合并后就标记一下
                                 add[i][j-k] = 1;
+                                //计分
+                                count += map[i][j-k];
+                                domove = 1;
                             }
                             //否则放在他前面一个摆着
                             else{
-                                let t = map[i][j];
-                                map[i][j] = 0;
-                                map[i][j-k+1] = t;
+                                //如果阻挡他的前一个就是自己，就不要变
+                                if(j-k+1 !== j){
+                                    let t = map[i][j];
+                                    map[i][j] = 0;
+                                    map[i][j-k+1] = t;
+                                    domove = 1;
+                                }
                             }
                             break;
                         }
@@ -100,6 +109,9 @@ document.onkeydown = function (e) {
                     if(map[i][0] === 0){
                         map[i][0] = map[i][j];
                         map[i][j] = 0;
+                        domove = 1;
+                        //执行移动动画
+                        move(i,j,i,0);
                     }
                 }
             }
@@ -121,12 +133,18 @@ document.onkeydown = function (e) {
                                 map[i][j] = 0;
                                 //合并后就标记一下
                                 add[i-k][j] = 1;
+                                count += map[i-k][j];
+                                domove = 1;
                             }
                             //否则放在他前面一个摆着
                             else{
-                                let t = map[i][j];
-                                map[i][j] = 0;
-                                map[i-k+1][j] = t;
+                                //如果阻挡他的前一个就是自己，就不要变
+                                if(i-k+1 !== i){
+                                    let t = map[i][j];
+                                    map[i][j] = 0;
+                                    map[i-k+1][j] = t;
+                                    domove = 1;
+                                }
                             }
                             break;
                         }
@@ -135,6 +153,7 @@ document.onkeydown = function (e) {
                     if(map[0][j] === 0){
                         map[0][j] = map[i][j];
                         map[i][j] = 0;
+                        domove = 1;
                     }
                 }
             }
@@ -156,12 +175,18 @@ document.onkeydown = function (e) {
                                 map[i][j] = 0;
                                 //合并后就标记一下
                                 add[i][j+k] = 1;
+                                count += map[i][j+k];
+                                domove = 1;
                             }
                             //否则放在他前面一个摆着
                             else{
-                                let t = map[i][j];
-                                map[i][j] = 0;
-                                map[i][j+k-1] = t;
+                                //如果阻挡他的前一个就是自己，就不要变
+                                if(j+k-1 !== j){
+                                    let t = map[i][j];
+                                    map[i][j] = 0;
+                                    map[i][j+k-1] = t;
+                                    domove = 1;
+                                }
                             }
                             break;
                         }
@@ -170,6 +195,7 @@ document.onkeydown = function (e) {
                     if(map[i][map[i].length-1] === 0){
                         map[i][map[i].length-1] = map[i][j];
                         map[i][j] = 0;
+                        domove = 1;
                     }
                 }
             }
@@ -191,12 +217,18 @@ document.onkeydown = function (e) {
                                 map[i][j] = 0;
                                 //合并后就标记一下
                                 add[i+k][j] = 1;
+                                count += map[i+k][j];
+                                domove = 1;
                             }
                             //否则放在他前面一个摆着
                             else{
-                                let t = map[i][j];
-                                map[i][j] = 0;
-                                map[i+k-1][j] = t;
+                                //如果阻挡他的前一个就是自己，就不要变
+                                if(i+k-1 !== i){
+                                    let t = map[i][j];
+                                    map[i][j] = 0;
+                                    map[i+k-1][j] = t;
+                                    domove = 1;
+                                }
                             }
                             break;
                         }
@@ -205,15 +237,76 @@ document.onkeydown = function (e) {
                     if(map[map.length-1][j] === 0){
                         map[map.length-1][j] = map[i][j];
                         map[i][j] = 0;
+                        domove = 1;
                     }
                 }
             }
         }
     }
-    doRandom();
+    //只有动了才生成新的
+    if(domove === 1) doRandom();
     show()
+    over()
 }
 
+//移动的动画
+function move(i0,j0,i1,j1) {
+    //先获得每个方块的长度
+
+
+    let x1 = document.getElementsByClassName("td")[i0*map[0].length+j0].offsetLeft;
+    let x2 = document.getElementsByClassName("td")[i1*map[0].length+j1].offsetLeft;
+    let y1 = document.getElementsByClassName("td")[i0*map[0].length+j0].offsetTop;
+    let y2 = document.getElementsByClassName("td")[i1*map[0].length+j1].offsetTop;
+    console.log(x1)
+    console.log(x2)
+    console.log(y1)
+    console.log(y2)
+
+
+}
+
+//判断游戏结束
+function over () {
+    //判断有没有满
+    for(let tr of map){
+        for(let td of tr){
+            if(td === 0){
+                console.log(1)
+
+                return 0;
+            }
+        }
+    }
+
+    for(let i=0; i<map.length-1; i++){
+        for(let j=0; j<map[0].length-1; j++){
+            //下面和右边出现相同直接退出函数，继续游戏
+            if(map[i][j] === map[i+1][j] || map[i][j] === map[i][j+1]){
+                console.log(2)
+                return 0;
+            }
+        }
+    }
+    //最右边一列
+    for(let i=0; i<map.length-1;i++){
+        if(map[i][map[0].length-1] === map[i+1][map[0].length-1]){
+                console.log(3)
+            return 0;
+        }
+    }
+    //最下面一行
+    for(let i=0; i<map[0].length-1;i++){
+        if(map[map.length-1][i] === map[map.length-1][i+1]){
+                console.log(4)
+            return 0;
+        }
+    }
+    alert("game over , click sure to start again");
+    onload();
+}
+
+//随机产生新的
 function doRandom () {
     //加不进了就不加了
     let t = 0;
@@ -231,7 +324,7 @@ function doRandom () {
     while(1){
         let i = parseInt(Math.random()*4);
         let j = parseInt(Math.random()*4);
-        console.log(i)
+        //console.log(i)
 
         if(map[i][j]===0){
             map[i][j] = 2;
@@ -241,4 +334,18 @@ function doRandom () {
 
 }
 
-show();
+//初始化游戏
+function onload(){
+    count = 0;
+    map = [
+        [1024,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0]
+    ];
+    doRandom();
+    doRandom();
+    show();
+}
+
+onload();
