@@ -14,11 +14,12 @@ var type = [
 ];
 
 var map = [
-    [2,2,4,8],
-    [16,32,64,128],
-    [256,512,1024,2048],
-    [0,0,0,0]
+    [2,0,2,0],
+    [4,2,0,2],
+    [4,4,0,2],
+    [0,0,4,0]
 ];
+var add;
 
 var content = document.getElementById("content");
 
@@ -40,6 +41,15 @@ var content = document.getElementById("content");
 //                 console.log("touchendX" + touch.changX + "touchendY" + touch.changY);
 //             })
 
+function reAdd () {
+    add = [
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0]
+    ];
+}
+
 //渲染方法
 function show () {
     let html = "";
@@ -48,6 +58,7 @@ function show () {
         html += `<div class="tr">`;
         for(let td of tr){
             let color = type.filter(item => item.content == td)[0].color;
+
             html += `<div class="td" style="background-color:${color}"><span>${td != 0 ? td : ""}</span></div>`;
         }
         html += `</div>`;
@@ -56,20 +67,37 @@ function show () {
 }
 
 document.onkeydown = function (e) {
-    console.log(e.keyCode);
+    //重置add数组
+    reAdd()
     //如果按了左键
     if(e.keyCode === 37){
         for(let i=0; i<map.length; i++){
             for(let j=1; j<map[0].length;j++){
                 //如果当前这个有数字
                 if (map[i][j] !== 0) {
-                    //如果当前这个要去的地方是空的话
-                    if (map[i][j-1] === 0) {
-                        map[i][j-1] = map[i][j];
-                        map[i][j] = 0;
-                    //如果下一个地方一样的话
-                    }else if (map[i][j-1] === map[i][j] && map[i][j] !== 2048){
-                        map[i][j-1] += map[i][j];
+                    //如果当前这个要去的地方是空的话//还要继续判断，一直到下一个不为空为止
+                    for(let k=1;k<=j;k++){
+                        //如果接下来那个有数字的话
+                        if (map[i][j-k] !== 0) {
+                            //如果下一个地方一样的话and不是2048and之前没有合并过//就合并
+                            if (map[i][j-k] === map[i][j] && map[i][j] !== 2048 && add[i][j-k]===0){
+                                map[i][j-k] += map[i][j];
+                                map[i][j] = 0;
+                                //合并后就标记一下
+                                add[i][j-k] = 1;
+                            }
+                            //否则放在他前面一个摆着
+                            else{
+                                let t = map[i][j];
+                                map[i][j] = 0;
+                                map[i][j-k+1] = t;
+                            }
+                            break;
+                        }
+                    }
+                    //如果循环完了还有一种情况没有考虑，就是接下来的没有数字
+                    if(map[i][0] === 0){
+                        map[i][0] = map[i][j];
                         map[i][j] = 0;
                     }
                 }
@@ -82,16 +110,32 @@ document.onkeydown = function (e) {
             for(let j=0; j<map[0].length; j++){
                 //如果当前这个有数字
                 if (map[i][j] !== 0) {
-                    //如果当前这个要去的地方是空的话
-                    if (map[i-1][j] === 0) {
-                        map[i-1][j] = map[i][j];
-                        map[i][j] = 0;
-                    //如果下一个地方一样的话
-                    }else if (map[i-1][j] === map[i][j] && map[i][j] !== 2048){
-                        map[i-1][j] += map[i][j];
+                    //如果当前这个要去的地方是空的话//还要继续判断，一直到下一个不为空为止
+                    for(let k=1;k<=i;k++){
+                        //如果接下来那个有数字的话
+                        if (map[i-k][j] !== 0) {
+                            //如果下一个地方一样的话and不是2048and之前没有合并过//就合并
+                            if (map[i-k][j] === map[i][j] && map[i][j] !== 2048 && add[i-k][j]===0){
+                                map[i-k][j] += map[i][j];
+                                map[i][j] = 0;
+                                //合并后就标记一下
+                                add[i-k][j] = 1;
+                            }
+                            //否则放在他前面一个摆着
+                            else{
+                                let t = map[i][j];
+                                map[i][j] = 0;
+                                map[i-k+1][j] = t;
+                            }
+                            break;
+                        }
+                    }
+                    //如果循环完了还有一种情况没有考虑，就是接下来的没有数字
+                    if(map[0][j] === 0){
+                        map[0][j] = map[i][j];
                         map[i][j] = 0;
                     }
-                };
+                }
             }
         }
     }
@@ -103,47 +147,65 @@ document.onkeydown = function (e) {
                 if (map[i][j] !== 0) {
                     //如果当前这个要去的地方是空的话//还要继续判断，一直到下一个不为空为止
                     for(let k=1;k<map[0].length-j;k++){
-                        if (map[i][j+k] === 0) {
-                            map[i][j+k] = map[i][j];
-                            map[i][j] = 0;
-                        //如果下一个地方一样的话
-                        }else if (map[i][j+1] === map[i][j] && map[i][j] !== 2048){
-                            map[i][j+1] += map[i][j];
-                            map[i][j] = 0;
+                        //如果接下来那个有数字的话
+                        if (map[i][j+k] !== 0) {
+                            //如果下一个地方一样的话and不是2048and之前没有合并过//就合并
+                            if (map[i][j+k] === map[i][j] && map[i][j] !== 2048 && add[i][j+k]===0){
+                                map[i][j+k] += map[i][j];
+                                map[i][j] = 0;
+                                //合并后就标记一下
+                                add[i][j+k] = 1;
+                            }
+                            //否则放在他前面一个摆着
+                            else{
+                                let t = map[i][j];
+                                map[i][j] = 0;
+                                map[i][j+k-1] = t;
+                            }
+                            break;
                         }
                     }
-
-
-
-                    if (map[i][j+1] === 0) {
-                        map[i][j+1] = map[i][j];
-                        map[i][j] = 0;
-                    //如果下一个地方一样的话
-                    }else if (map[i][j+1] === map[i][j] && map[i][j] !== 2048){
-                        map[i][j+1] += map[i][j];
+                    //如果循环完了还有一种情况没有考虑，就是接下来的没有数字
+                    if(map[i][map[i].length-1] === 0){
+                        map[i][map[i].length-1] = map[i][j];
                         map[i][j] = 0;
                     }
-                };
+                }
             }
         }
     }
     //如果按了下键
     else if(e.keyCode === 40){
         for(let i=map.length-2; i>=0; i--){
-            for(let j=0; j<map[0].length;){
+            for(let j=0; j<map[0].length;j++){
                 //如果当前这个有数字
                 if (map[i][j] !== 0) {
-                    //如果当前这个要去的地方是空的话
-                    if (map[i+1][j] === 0) {
-                        map[i+1][j] = map[i][j];
-                        map[i][j] = 0;
-                    //如果下一个地方一样的话
-                    }else if (map[i+1][j] === map[i][j] && map[i][j] !== 2048){
-                        map[i+1][j] += map[i][j];
+                    //如果当前这个要去的地方是空的话//还要继续判断，一直到下一个不为空为止
+                    for(let k=1;k<map[0].length-i;k++){
+                        //如果接下来那个有数字的话
+                        if (map[i+k][j] !== 0) {
+                            //如果下一个地方一样的话and不是2048and之前没有合并过//就合并
+                            if (map[i+k][j] === map[i][j] && map[i][j] !== 2048 && add[i+k][j]===0){
+                                map[i+k][j] += map[i][j];
+                                map[i][j] = 0;
+                                //合并后就标记一下
+                                add[i+k][j] = 1;
+                            }
+                            //否则放在他前面一个摆着
+                            else{
+                                let t = map[i][j];
+                                map[i][j] = 0;
+                                map[i+k-1][j] = t;
+                            }
+                            break;
+                        }
+                    }
+                    //如果循环完了还有一种情况没有考虑，就是接下来的没有数字
+                    if(map[map.length-1][j] === 0){
+                        map[map.length-1][j] = map[i][j];
                         map[i][j] = 0;
                     }
-                    j++
-                }else j++
+                }
             }
         }
     }
@@ -156,12 +218,6 @@ function move(){
 
 function onLoad(){
     show();
-    for(let i=0;i<10;i++){
-        console.log("---"+i+"---")
-        for(let j=0;j<10;j++){
-            console.log(i+j)
-        }
-    }
 }
 
 onLoad();
