@@ -66,6 +66,7 @@ function show () {
     content.innerHTML = html;
 }
 
+//点击触发
 document.onkeydown = function (e) {
     //重置add数组
     reAdd()
@@ -209,15 +210,35 @@ document.onkeydown = function (e) {
             }
         }
     }
+    doRandom();
     show()
 }
 
-function move(){
+function doRandom () {
+    //加不进了就不加了
+    let t = 0;
+    find:
+    for(let tr of map){
+        for(let td of tr){
+            if(td === 0){
+                t = 1;
+                break find;
+            }
+        }
+    }
+    if (t === 0) {return 0;}
+    //可以加就随机产生数字
+    while(1){
+        let i = parseInt(Math.random()*4);
+        let j = parseInt(Math.random()*4);
+        console.log(i)
+
+        if(map[i][j]===0){
+            map[i][j] = 2;
+            break;
+        }
+    }
 
 }
 
-function onLoad(){
-    show();
-}
-
-onLoad();
+show();
