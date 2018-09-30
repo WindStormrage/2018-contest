@@ -338,7 +338,7 @@ function doRandom () {
 function onload(){
     count = 0;
     map = [
-        [1024,0,0,0],
+        [0,0,0,0],
         [0,0,0,0],
         [0,0,0,0],
         [0,0,0,0]
